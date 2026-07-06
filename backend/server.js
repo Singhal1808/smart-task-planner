@@ -15,11 +15,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
 
-app.get("/", (req, res) => {
-  res.send("Smart Task Planner Backend is Running...");
-});
+// API Routes
 app.use("/tasks", taskRoutes);
 app.use("/execution-plan", executionPlanRoutes);
+
+// Frontend - Serve static files and catch-all
 const frontendDistPath = path.join(__dirname, "../frontend/dist");
 
 if (fs.existsSync(frontendDistPath)) {
@@ -27,6 +27,11 @@ if (fs.existsSync(frontendDistPath)) {
 
   app.get(/.*/, (req, res) => {
     res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+} else {
+  // Fallback if frontend dist doesn't exist
+  app.get("/", (req, res) => {
+    res.send("Smart Task Planner Backend is Running...");
   });
 }
 
