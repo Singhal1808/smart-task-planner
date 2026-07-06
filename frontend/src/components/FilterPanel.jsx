@@ -7,6 +7,8 @@ function FilterPanel({
   selectedFilters,
 }) {
   const [showFilters, setShowFilters] = useState(false);
+  const [expandedFilter, setExpandedFilter] = useState(null);
+  const [tempFilters, setTempFilters] = useState(selectedFilters);
 
   const categories = [...new Set(tasks.map((t) => t.category).filter(Boolean))];
   const priorities = [...new Set(tasks.map((t) => t.priority).filter(Boolean))];
@@ -18,41 +20,62 @@ function FilterPanel({
   const minEffort = efforts.length > 0 ? Math.min(...efforts) : 0;
 
   const handleCategoryChange = (category) => {
-    const updated = selectedFilters.categories.includes(category)
-      ? selectedFilters.categories.filter((c) => c !== category)
-      : [...selectedFilters.categories, category];
+    const updated = tempFilters.categories.includes(category)
+      ? tempFilters.categories.filter((c) => c !== category)
+      : [...tempFilters.categories, category];
 
-    onFilterChange({ ...selectedFilters, categories: updated });
+    setTempFilters({ ...tempFilters, categories: updated });
   };
 
   const handlePriorityChange = (priority) => {
-    const updated = selectedFilters.priorities.includes(priority)
-      ? selectedFilters.priorities.filter((p) => p !== priority)
-      : [...selectedFilters.priorities, priority];
+    const updated = tempFilters.priorities.includes(priority)
+      ? tempFilters.priorities.filter((p) => p !== priority)
+      : [...tempFilters.priorities, priority];
 
-    onFilterChange({ ...selectedFilters, priorities: updated });
+    setTempFilters({ ...tempFilters, priorities: updated });
   };
 
   const handleStatusChange = (status) => {
-    const updated = selectedFilters.statuses.includes(status)
-      ? selectedFilters.statuses.filter((s) => s !== status)
-      : [...selectedFilters.statuses, status];
+    const updated = tempFilters.statuses.includes(status)
+      ? tempFilters.statuses.filter((s) => s !== status)
+      : [...tempFilters.statuses, status];
 
-    onFilterChange({ ...selectedFilters, statuses: updated });
+    setTempFilters({ ...tempFilters, statuses: updated });
   };
 
-  const handleEffortChange = (e) => {
+  const handleEffortMaxChange = (e) => {
     const value = Number(e.target.value);
-    const newRange = [selectedFilters.effortRange[0], value];
+    const newRange = [tempFilters.effortRange[0], value];
 
-    onFilterChange({ ...selectedFilters, effortRange: newRange });
+    setTempFilters({ ...tempFilters, effortRange: newRange });
   };
 
   const handleEffortMinChange = (e) => {
     const value = Number(e.target.value);
-    const newRange = [value, selectedFilters.effortRange[1]];
+    const newRange = [value, tempFilters.effortRange[1]];
 
-    onFilterChange({ ...selectedFilters, effortRange: newRange });
+    setTempFilters({ ...tempFilters, effortRange: newRange });
+  };
+
+  const handleApplyFilters = () => {
+    onFilterChange(tempFilters);
+    setShowFilters(false);
+  };
+
+  const handleCancel = () => {
+    setTempFilters(selectedFilters);
+    setShowFilters(false);
+    setExpandedFilter(null);
+  };
+
+  const handleRemoveAllFilters = () => {
+    const clearedFilters = {
+      categories: [],
+      priorities: [],
+      statuses: [],
+      effortRange: [minEffort, maxEffort],
+    };
+    setTempFilters(clearedFilters);
   };
 
   const activeFilterCount =
@@ -64,130 +87,214 @@ function FilterPanel({
     <div className="filter-panel-wrapper">
       <button
         className="filter-toggle-btn"
-        onClick={() => setShowFilters(!showFilters)}
+        onClick={() => {
+          setShowFilters(!showFilters);
+          setTempFilters(selectedFilters);
+          if (showFilters) {
+            setExpandedFilter(null);
+          }
+        }}
       >
         🔽 Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
       </button>
 
       {showFilters && (
         <div className="filter-panel">
-          {/* Category Filter */}
-          <div className="filter-section">
-            <h4>Category</h4>
-            <div className="filter-options">
-              {categories.length === 0 ? (
-                <p className="no-options">No categories available</p>
-              ) : (
-                categories.map((cat) => (
-                  <label key={cat} className="filter-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.categories.includes(cat)}
-                      onChange={() => handleCategoryChange(cat)}
-                    />
-                    <span>{cat}</span>
-                  </label>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Priority Filter */}
-          <div className="filter-section">
-            <h4>Priority</h4>
-            <div className="filter-options">
-              {priorities.length === 0 ? (
-                <p className="no-options">No priorities available</p>
-              ) : (
-                priorities.map((pri) => (
-                  <label key={pri} className="filter-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.priorities.includes(pri)}
-                      onChange={() => handlePriorityChange(pri)}
-                    />
-                    <span>{pri}</span>
-                  </label>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Status Filter */}
-          <div className="filter-section">
-            <h4>Status</h4>
-            <div className="filter-options">
-              {statuses.length === 0 ? (
-                <p className="no-options">No statuses available</p>
-              ) : (
-                statuses.map((stat) => (
-                  <label key={stat} className="filter-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedFilters.statuses.includes(stat)}
-                      onChange={() => handleStatusChange(stat)}
-                    />
-                    <span>{stat}</span>
-                  </label>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Effort Range Filter */}
-          <div className="filter-section">
-            <h4>Effort Range</h4>
-            <div className="effort-range">
-              <div className="range-inputs">
-                <input
-                  type="number"
-                  min={minEffort}
-                  max={maxEffort}
-                  value={selectedFilters.effortRange[0]}
-                  onChange={handleEffortMinChange}
-                  className="range-input"
-                />
-                <span>to</span>
-                <input
-                  type="number"
-                  min={minEffort}
-                  max={maxEffort}
-                  value={selectedFilters.effortRange[1]}
-                  onChange={handleEffortChange}
-                  className="range-input"
-                />
-              </div>
-              <input
-                type="range"
-                min={minEffort}
-                max={maxEffort}
-                value={selectedFilters.effortRange[1]}
-                onChange={handleEffortChange}
-                className="effort-slider"
-              />
-              <div className="range-labels">
-                <span>{minEffort}</span>
-                <span>{maxEffort}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Clear Filters */}
-          {activeFilterCount > 0 && (
+          <div className="filter-menu">
+            {/* Filter Menu Items */}
             <button
-              className="clear-filters-btn"
+              className={`filter-menu-item ${
+                expandedFilter === "category" ? "active" : ""
+              }`}
               onClick={() =>
-                onFilterChange({
-                  categories: [],
-                  priorities: [],
-                  statuses: [],
-                  effortRange: [minEffort, maxEffort],
-                })
+                setExpandedFilter(
+                  expandedFilter === "category" ? null : "category"
+                )
               }
             >
-              Clear All Filters
+              <span>Category</span>
+              {tempFilters.categories.length > 0 && (
+                <span className="filter-badge">{tempFilters.categories.length}</span>
+              )}
             </button>
-          )}
+
+            <button
+              className={`filter-menu-item ${
+                expandedFilter === "priority" ? "active" : ""
+              }`}
+              onClick={() =>
+                setExpandedFilter(
+                  expandedFilter === "priority" ? null : "priority"
+                )
+              }
+            >
+              <span>Priority</span>
+              {tempFilters.priorities.length > 0 && (
+                <span className="filter-badge">{tempFilters.priorities.length}</span>
+              )}
+            </button>
+
+            <button
+              className={`filter-menu-item ${
+                expandedFilter === "status" ? "active" : ""
+              }`}
+              onClick={() =>
+                setExpandedFilter(expandedFilter === "status" ? null : "status")
+              }
+            >
+              <span>Status</span>
+              {tempFilters.statuses.length > 0 && (
+                <span className="filter-badge">{tempFilters.statuses.length}</span>
+              )}
+            </button>
+
+            <button
+              className={`filter-menu-item ${
+                expandedFilter === "effort" ? "active" : ""
+              }`}
+              onClick={() =>
+                setExpandedFilter(expandedFilter === "effort" ? null : "effort")
+              }
+            >
+              <span>Effort</span>
+              {(tempFilters.effortRange[0] !== minEffort ||
+                tempFilters.effortRange[1] !== maxEffort) && (
+                <span className="filter-badge">✓</span>
+              )}
+            </button>
+          </div>
+
+          {/* Filter Content - Show only expanded filter */}
+          <div className="filter-content">
+            {expandedFilter === "category" && (
+              <div className="filter-section">
+                <h5>Select Categories</h5>
+                <div className="filter-options">
+                  {categories.length === 0 ? (
+                    <p className="no-options">No categories available</p>
+                  ) : (
+                    categories.map((cat) => (
+                      <label key={cat} className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.categories.includes(cat)}
+                          onChange={() => handleCategoryChange(cat)}
+                        />
+                        <span>{cat}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {expandedFilter === "priority" && (
+              <div className="filter-section">
+                <h5>Select Priorities</h5>
+                <div className="filter-options">
+                  {priorities.length === 0 ? (
+                    <p className="no-options">No priorities available</p>
+                  ) : (
+                    priorities.map((pri) => (
+                      <label key={pri} className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.priorities.includes(pri)}
+                          onChange={() => handlePriorityChange(pri)}
+                        />
+                        <span>{pri}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {expandedFilter === "status" && (
+              <div className="filter-section">
+                <h5>Select Statuses</h5>
+                <div className="filter-options">
+                  {statuses.length === 0 ? (
+                    <p className="no-options">No statuses available</p>
+                  ) : (
+                    statuses.map((stat) => (
+                      <label key={stat} className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.statuses.includes(stat)}
+                          onChange={() => handleStatusChange(stat)}
+                        />
+                        <span>{stat}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {expandedFilter === "effort" && (
+              <div className="filter-section">
+                <h5>Select Effort Range</h5>
+                <div className="effort-range">
+                  <div className="range-inputs">
+                    <input
+                      type="number"
+                      min={minEffort}
+                      max={maxEffort}
+                      value={tempFilters.effortRange[0]}
+                      onChange={handleEffortMinChange}
+                      className="range-input"
+                    />
+                    <span>to</span>
+                    <input
+                      type="number"
+                      min={minEffort}
+                      max={maxEffort}
+                      value={tempFilters.effortRange[1]}
+                      onChange={handleEffortMaxChange}
+                      className="range-input"
+                    />
+                  </div>
+                  <input
+                    type="range"
+                    min={minEffort}
+                    max={maxEffort}
+                    value={tempFilters.effortRange[1]}
+                    onChange={handleEffortMaxChange}
+                    className="effort-slider"
+                  />
+                  <div className="range-labels">
+                    <span>{minEffort}</span>
+                    <span>{maxEffort}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {!expandedFilter && (
+              <div className="filter-section empty-state">
+                <p>👆 Select a filter to begin</p>
+              </div>
+            )}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="filter-actions">
+            {activeFilterCount > 0 && (
+              <button
+                className="remove-all-btn"
+                onClick={handleRemoveAllFilters}
+              >
+                🗑️ Remove All
+              </button>
+            )}
+            <button className="cancel-btn" onClick={handleCancel}>
+              Cancel
+            </button>
+            <button className="apply-btn" onClick={handleApplyFilters}>
+              Apply Filters
+            </button>
+          </div>
         </div>
       )}
     </div>
