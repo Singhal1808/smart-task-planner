@@ -4,7 +4,7 @@
   "description": "Smart Task Planner - Hiring Assignment App",
   "private": true,
   "engines": {
-    "node": "18.x"
+    "node": "20.x"
   },
   "scripts": {
     "install-all": "npm install && cd frontend && npm install && cd ../backend && npm install",
