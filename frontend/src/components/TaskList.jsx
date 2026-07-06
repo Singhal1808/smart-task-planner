@@ -12,10 +12,11 @@ function TaskList({ tasks, onView, onDelete, onEdit, onManageDependencies }) {
       {tasks.length === 0 ? (
         <p className="empty-state">No tasks match your search.</p>
       ) : (
-        tasks.map((task) => (
+        tasks.map((task, index) => (
         <TaskCard
           key={task.id}
           task={task}
+          taskNumber={index + 1}
           onView={onView}
           onDelete={onDelete}
           onEdit={onEdit}

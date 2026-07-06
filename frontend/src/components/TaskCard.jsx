@@ -1,8 +1,9 @@
 import "../styles/TaskCard.css";
 
-function TaskCard({ task, onView, onDelete, onEdit, onManageDependencies }) {
+function TaskCard({ task, taskNumber, onView, onDelete, onEdit, onManageDependencies }) {
   return (
     <div className="task-card">
+      <div className="task-number">{taskNumber}</div>
       <div className="task-info">
         <h3>{task.title}</h3>
 

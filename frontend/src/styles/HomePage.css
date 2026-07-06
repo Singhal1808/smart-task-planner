@@ -21,6 +21,36 @@
 .app-header p {
   color: #667085;
   font-size: 16px;
+  margin: 4px 0;
+}
+
+.user-info {
+  font-size: 13px !important;
+  color: #999 !important;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.logout-button {
+  min-height: 44px;
+  padding: 0 18px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.logout-button:hover {
+  background-color: #e8e8e8;
+  border-color: #999;
 }
 
 .app-header button,

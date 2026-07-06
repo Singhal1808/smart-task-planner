@@ -1,0 +1,100 @@
+.sort-panel-wrapper {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.sort-control {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background-color: #f5f7fa;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+
+.sort-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.sort-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  background-color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+}
+
+.sort-select:hover {
+  border-color: #4a90e2;
+  box-shadow: 0 0 4px rgba(74, 144, 226, 0.2);
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.3);
+}
+
+.sort-direction-btn {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: #4a90e2;
+  transition: all 0.2s;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sort-direction-btn:hover {
+  background-color: #e3f2fd;
+  border-color: #4a90e2;
+  transform: scale(1.1);
+}
+
+.sort-direction-btn:active {
+  background-color: #bbdefb;
+}
+
+.sort-direction-btn.asc::after {
+  content: " ASC";
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+.sort-direction-btn.desc::after {
+  content: " DESC";
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sort-control {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .sort-select {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .sort-label {
+    width: 100%;
+  }
+}

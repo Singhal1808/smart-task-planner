@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import FilterPanel from "../components/FilterPanel";
+import SortPanel from "../components/SortPanel";
 import TaskList from "../components/TaskList";
 import ExecutionPlan from "../components/ExecutionPlan";
+import LoginModal from "../components/LoginModal";
 import "../styles/HomePage.css";
 import TaskForm from "../components/TaskForm";
 import TaskDetails from "../components/TaskDetails";
@@ -18,6 +20,8 @@ const DEPENDENT_DELETE_MESSAGE =
   "Cannot delete task because other tasks depend on it.";
 
 function HomePage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userEmail, setUserEmail] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [executionPlan, setExecutionPlan] = useState([]);
   const [planError, setPlanError] = useState("");
@@ -33,61 +37,121 @@ function HomePage() {
     statuses: [],
     effortRange: [0, 10],
   });
-
-  const filteredTasks = tasks.filter((task) => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    // Text search filter
-    if (normalizedSearch) {
-      const searchableText = [
-        task.title,
-        task.description,
-        task.priority,
-        task.category,
-        task.status,
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      if (!searchableText.includes(normalizedSearch)) return false;
-    }
-
-    // Category filter
-    if (
-      selectedFilters.categories.length > 0 &&
-      !selectedFilters.categories.includes(task.category)
-    ) {
-      return false;
-    }
-
-    // Priority filter
-    if (
-      selectedFilters.priorities.length > 0 &&
-      !selectedFilters.priorities.includes(task.priority)
-    ) {
-      return false;
-    }
-
-    // Status filter
-    if (
-      selectedFilters.statuses.length > 0 &&
-      !selectedFilters.statuses.includes(task.status)
-    ) {
-      return false;
-    }
-
-    // Effort range filter
-    if (
-      task.estimatedEffort < selectedFilters.effortRange[0] ||
-      task.estimatedEffort > selectedFilters.effortRange[1]
-    ) {
-      return false;
-    }
-
-    return true;
+  const [sortConfig, setSortConfig] = useState({
+    field: "createdAt",
+    direction: "asc",
   });
 
+  const priorityOrder = { Low: 0, Medium: 1, High: 2 };
+  const statusOrder = { Pending: 0, "In Progress": 1, Completed: 2 };
+
+  const getSortValue = (task, field) => {
+    switch (field) {
+      case "title":
+        return task.title.toLowerCase();
+      case "description":
+        return task.description.toLowerCase();
+      case "effort":
+        return task.estimatedEffort;
+      case "priority":
+        return priorityOrder[task.priority] || -1;
+      case "status":
+        return statusOrder[task.status] || -1;
+      case "category":
+        return task.category.toLowerCase();
+      case "createdAt":
+        return task.id;
+      default:
+        return "";
+    }
+  };
+
+  const filteredTasks = tasks
+    .filter((task) => {
+      const normalizedSearch = searchTerm.trim().toLowerCase();
+
+      // Text search filter
+      if (normalizedSearch) {
+        const searchableText = [
+          task.title,
+          task.description,
+          task.priority,
+          task.category,
+          task.status,
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        if (!searchableText.includes(normalizedSearch)) return false;
+      }
+
+      // Category filter
+      if (
+        selectedFilters.categories.length > 0 &&
+        !selectedFilters.categories.includes(task.category)
+      ) {
+        return false;
+      }
+
+      // Priority filter
+      if (
+        selectedFilters.priorities.length > 0 &&
+        !selectedFilters.priorities.includes(task.priority)
+      ) {
+        return false;
+      }
+
+      // Status filter
+      if (
+        selectedFilters.statuses.length > 0 &&
+        !selectedFilters.statuses.includes(task.status)
+      ) {
+        return false;
+      }
+
+      // Effort range filter
+      if (
+        task.estimatedEffort < selectedFilters.effortRange[0] ||
+        task.estimatedEffort > selectedFilters.effortRange[1]
+      ) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      const aValue = getSortValue(a, sortConfig.field);
+      const bValue = getSortValue(b, sortConfig.field);
+
+      let comparison = 0;
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        comparison = aValue.localeCompare(bValue);
+      } else {
+        comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      }
+
+      if (comparison === 0) {
+        // Tiebreaker: sort by ID (creation order)
+        return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+      }
+
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
+
   useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem("authToken");
+    const email = localStorage.getItem("userEmail");
+
+    if (token && email) {
+      setIsAuthenticated(true);
+      setUserEmail(email);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
     async function loadTasks() {
       const data = await getAllTasks();
 
@@ -108,7 +172,7 @@ function HomePage() {
     }
 
     loadTasks();
-  }, []);
+  }, [isAuthenticated]);
 
   async function handleDelete(taskId) {
     try {
@@ -171,23 +235,60 @@ function HomePage() {
     setPlanError("");
   }
 
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await fetch("/auth/logout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("userEmail");
+    setIsAuthenticated(false);
+    setUserEmail(null);
+    setTasks([]);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <LoginModal
+        onLoginSuccess={(email) => {
+          setUserEmail(email);
+          setIsAuthenticated(true);
+        }}
+      />
+    );
+  }
+
   return (
     <div className="home-container">
       <header className="app-header">
         <div>
           <h1>Smart Task Planner</h1>
           <p>Plan sprint tasks, manage dependencies, and generate execution order.</p>
+          <p className="user-info">👤 Logged in as: {userEmail}</p>
         </div>
-        <button
-          className="primary-button"
-          onClick={() => {
-            setIsEditing(false);
-            setFormTask(null);
-            setShowForm(true);
-          }}
-        >
-          Create Task
-        </button>
+        <div className="header-buttons">
+          <button
+            className="primary-button"
+            onClick={() => {
+              setIsEditing(false);
+              setFormTask(null);
+              setShowForm(true);
+            }}
+          >
+            Create Task
+          </button>
+          <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </header>
       {viewTask && (
         <TaskDetails
@@ -220,6 +321,7 @@ function HomePage() {
         selectedFilters={selectedFilters}
         onFilterChange={setSelectedFilters}
       />
+      <SortPanel sortConfig={sortConfig} onSortChange={setSortConfig} />
       <TaskList
         tasks={filteredTasks}
         onView={(task) => {

@@ -78,10 +78,15 @@ function FilterPanel({
     setTempFilters(clearedFilters);
   };
 
+  const isEffortFiltered =
+    selectedFilters.effortRange[0] !== minEffort ||
+    selectedFilters.effortRange[1] !== maxEffort;
+
   const activeFilterCount =
     selectedFilters.categories.length +
     selectedFilters.priorities.length +
-    selectedFilters.statuses.length;
+    selectedFilters.statuses.length +
+    (isEffortFiltered ? 1 : 0);
 
   return (
     <div className="filter-panel-wrapper">
@@ -236,33 +241,46 @@ function FilterPanel({
               <div className="filter-section">
                 <h5>Select Effort Range</h5>
                 <div className="effort-range">
-                  <div className="range-inputs">
+                  <div className="range-display">
+                    <span className="range-value">{tempFilters.effortRange[0]}</span>
+                    <span className="range-dash">—</span>
+                    <span className="range-value">{tempFilters.effortRange[1]}</span>
+                  </div>
+                  <div className="dual-range-slider">
                     <input
-                      type="number"
+                      type="range"
                       min={minEffort}
                       max={maxEffort}
                       value={tempFilters.effortRange[0]}
-                      onChange={handleEffortMinChange}
-                      className="range-input"
+                      onChange={(e) => {
+                        const newMin = Number(e.target.value);
+                        if (newMin <= tempFilters.effortRange[1]) {
+                          setTempFilters({
+                            ...tempFilters,
+                            effortRange: [newMin, tempFilters.effortRange[1]],
+                          });
+                        }
+                      }}
+                      className="range-slider range-slider-min"
                     />
-                    <span>to</span>
                     <input
-                      type="number"
+                      type="range"
                       min={minEffort}
                       max={maxEffort}
                       value={tempFilters.effortRange[1]}
-                      onChange={handleEffortMaxChange}
-                      className="range-input"
+                      onChange={(e) => {
+                        const newMax = Number(e.target.value);
+                        if (newMax >= tempFilters.effortRange[0]) {
+                          setTempFilters({
+                            ...tempFilters,
+                            effortRange: [tempFilters.effortRange[0], newMax],
+                          });
+                        }
+                      }}
+                      className="range-slider range-slider-max"
                     />
+                    <div className="range-track" />
                   </div>
-                  <input
-                    type="range"
-                    min={minEffort}
-                    max={maxEffort}
-                    value={tempFilters.effortRange[1]}
-                    onChange={handleEffortMaxChange}
-                    className="effort-slider"
-                  />
                   <div className="range-labels">
                     <span>{minEffort}</span>
                     <span>{maxEffort}</span>

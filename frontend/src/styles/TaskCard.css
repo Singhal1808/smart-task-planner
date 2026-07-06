@@ -2,40 +2,55 @@
   border: 1px solid #d9e0ea;
   border-radius: 8px;
   background: #ffffff;
-  padding: 22px;
-  margin: 14px 0;
+  padding: 14px 16px;
+  margin: 8px 0;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 24px;
-  box-shadow: 0 10px 24px rgba(31, 42, 68, 0.05);
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(31, 42, 68, 0.05);
+}
+
+.task-number {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4a90e2;
+  color: white;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 13px;
+  margin-top: 2px;
 }
 
 .task-info h3 {
-  margin-bottom: 12px;
-  font-size: 22px;
-  line-height: 1.2;
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  line-height: 1.3;
   overflow-wrap: anywhere;
 }
 
 .task-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 8px;
 }
 
 .task-meta span,
 .task-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
+  min-height: 22px;
   border-radius: 999px;
   background: #eef2f7;
   color: #344054;
-  font-size: 14px;
-  font-weight: 700;
-  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 8px;
 }
 
 .task-badge.priority-high {
@@ -55,8 +70,9 @@
 
 .task-category {
   color: #667085;
-  font-size: 15px;
+  font-size: 12px;
   overflow-wrap: anywhere;
+  margin: 0;
 }
 
 .task-actions {
@@ -69,8 +85,9 @@
 }
 
 .task-actions button {
-  min-height: 40px;
-  padding: 0 14px;
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
 }
 
 .task-info {
