@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import SearchBar from "../components/SearchBar";
+import FilterPanel from "../components/FilterPanel";
 import TaskList from "../components/TaskList";
 import ExecutionPlan from "../components/ExecutionPlan";
 import "../styles/HomePage.css";
@@ -26,22 +27,64 @@ function HomePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilters, setSelectedFilters] = useState({
+    categories: [],
+    priorities: [],
+    statuses: [],
+    effortRange: [0, 10],
+  });
 
   const filteredTasks = tasks.filter((task) => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
-    if (!normalizedSearch) return true;
+    // Text search filter
+    if (normalizedSearch) {
+      const searchableText = [
+        task.title,
+        task.description,
+        task.priority,
+        task.category,
+        task.status,
+      ]
+        .join(" ")
+        .toLowerCase();
 
-    return [
-      task.title,
-      task.description,
-      task.priority,
-      task.category,
-      task.status,
-    ]
-      .join(" ")
-      .toLowerCase()
-      .includes(normalizedSearch);
+      if (!searchableText.includes(normalizedSearch)) return false;
+    }
+
+    // Category filter
+    if (
+      selectedFilters.categories.length > 0 &&
+      !selectedFilters.categories.includes(task.category)
+    ) {
+      return false;
+    }
+
+    // Priority filter
+    if (
+      selectedFilters.priorities.length > 0 &&
+      !selectedFilters.priorities.includes(task.priority)
+    ) {
+      return false;
+    }
+
+    // Status filter
+    if (
+      selectedFilters.statuses.length > 0 &&
+      !selectedFilters.statuses.includes(task.status)
+    ) {
+      return false;
+    }
+
+    // Effort range filter
+    if (
+      task.estimatedEffort < selectedFilters.effortRange[0] ||
+      task.estimatedEffort > selectedFilters.effortRange[1]
+    ) {
+      return false;
+    }
+
+    return true;
   });
 
   useEffect(() => {
@@ -49,6 +92,19 @@ function HomePage() {
       const data = await getAllTasks();
 
       setTasks(data);
+
+      // Initialize effort range based on actual data
+      const efforts = data
+        .map((t) => t.estimatedEffort)
+        .filter((e) => e !== undefined && e !== null);
+      if (efforts.length > 0) {
+        const minEffort = Math.min(...efforts);
+        const maxEffort = Math.max(...efforts);
+        setSelectedFilters((prev) => ({
+          ...prev,
+          effortRange: [minEffort, maxEffort],
+        }));
+      }
     }
 
     loadTasks();
@@ -159,6 +215,11 @@ function HomePage() {
       <div className="toolbar">
         <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
       </div>
+      <FilterPanel
+        tasks={tasks}
+        selectedFilters={selectedFilters}
+        onFilterChange={setSelectedFilters}
+      />
       <TaskList
         tasks={filteredTasks}
         onView={(task) => {
