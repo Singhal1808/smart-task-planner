@@ -1,0 +1,14 @@
+{
+  "name": "smart-task-planner",
+  "version": "1.0.0",
+  "description": "Smart Task Planner",
+  "scripts": {
+    "install-all": "npm install && cd frontend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && node server.js",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}
