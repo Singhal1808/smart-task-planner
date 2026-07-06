@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:5000/tasks";
+const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = "/tasks";
 
 async function parseResponse(response) {
   const data = await response.json();
@@ -62,7 +63,7 @@ export async function updateTaskDependencies(taskId, dependencies) {
 }
 
 export async function getExecutionPlan() {
-  const response = await fetch("http://localhost:5000/execution-plan");
+  const response = await fetch("/execution-plan");
 
   return parseResponse(response);
 }
